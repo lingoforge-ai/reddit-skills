@@ -49,13 +49,13 @@ This project is compatible with [skills.sh](https://skills.sh). Install individu
 
 ```bash
 # Install a single skill
-npx skills add https://github.com/vercel-labs/skills --skill reddit-auth
+npx skills add lingoforge-ai/reddit-skills --skill reddit-auth
 
 # Install multiple skills
-npx skills add https://github.com/vercel-labs/skills --skill reddit-auth --skill reddit-validator --skill reddit-orchestrator
+npx skills add lingoforge-ai/reddit-skills --skill reddit-auth --skill reddit-validator --skill reddit-orchestrator
 
 # Install all skills
-npx skills add https://github.com/vercel-labs/skills
+npx skills add lingoforge-ai/reddit-skills --all
 ```
 
 Installed skills land in `skills/<skill-name>/` with a `SKILL.md` contract that AI agents can discover and invoke.
@@ -63,8 +63,8 @@ Installed skills land in `skills/<skill-name>/` with a `SKILL.md` contract that 
 ### Option B — Clone and run directly
 
 ```bash
-git clone https://github.com/vercel-labs/skills.git
-cd skills
+git clone https://github.com/lingoforge-ai/reddit-skills.git
+cd reddit-skills
 ```
 
 ### Set up a virtual environment
