@@ -43,6 +43,10 @@ All six skills are runnable today.
 - A Reddit account (for browser-based auth) or Reddit API credentials (for PRAW/token auth)
 - Optional: `OPENAI_API_KEY` or `OPENROUTER_API_KEY` for LLM-powered features (idea analysis, content drafting, orchestrator fallback planning)
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:fc40065c17547a329ee8b4e2d5bfda361aa56146d19c4ec23eb4b013992e30d0 -->
+
 ### Option A — Install via skills.sh
 
 This project is compatible with [skills.sh](https://skills.sh). Install individual skills into your project:
@@ -52,13 +56,17 @@ This project is compatible with [skills.sh](https://skills.sh). Install individu
 npx skills add https://github.com/lingoforge-ai/reddit-skills --skill reddit-auth
 
 # Install multiple skills
-npx skills add https://github.com/lingoforge-ai/reddit-skills --skill reddit-auth --skill reddit-validator --skill reddit-orchestrator
+npx skills add https://github.com/lingoforge-ai/reddit-skills --skill reddit-auth --skill reddit-validator --skill reddit-explore --skill reddit-publish --skill reddit-interact --skill reddit-orchestrator
 
 # Install all skills
 npx skills add https://github.com/lingoforge-ai/reddit-skills --all
 ```
 
-Installed skills land in `skills/<skill-name>/` with a `SKILL.md` contract that AI agents can discover and invoke.
+Installed skills land in the selected agent’s skill directory (`./<agent>/skills/` for project installs, such as `./.claude/skills/`), with a `SKILL.md` contract that AI agents can discover and invoke.
+
+
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ### Option B — Clone and run directly
 
@@ -132,7 +140,15 @@ export OPENROUTER_API_KEY="sk-or-..."
 3. **MCP layer**: Skills expose entrypoints an AI agent can call, returning JSON or rendered reports.
 4. **Orchestration layer**: `reddit-orchestrator` composes skills into multi-step workflows — a hybrid planner matches known requests to pre-built templates or falls back to an LLM, then a DAG runner executes steps with conditionals, retries, and checkpoints.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:e117b0ce91ec5f065fabf8d951edbe0f9042dd01b693cb7034c5213f4dc322d1 -->
+
 ## Quickstart
+
+Run these commands from the root of the cloned repository (Option B).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ### Step 1 — Authenticate
 

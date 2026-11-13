@@ -101,7 +101,7 @@ class Fetcher:
     def __init__(self, strategy: str, client):
         self.strategy = strategy
         self._client = client
-        # post_id -> (post_dict, comments_list); hydrated once per page visit.
+        # (post_id, comment_sort) -> (post_dict, comments_list).
         self._post_cache: dict = {}
 
     @classmethod
@@ -169,12 +169,13 @@ class Fetcher:
             time.sleep(0.5)
         return False
 
-    def _dom_post_page(self, permalink_or_id: str, comment_limit: int = 0):
-        """Visit a comments page once; cache post + comments by post id."""
+    def _dom_post_page(self, permalink_or_id: str, comment_limit: int = 0, comment_sort: str = "top"):
+        """Visit a comments page once; cache post + comments by post id and sort."""
         post_id = self._normalize_post_id(permalink_or_id)
-        cached = self._post_cache.get(post_id)
+        cache_key = (post_id, comment_sort)
+        cached = self._post_cache.get(cache_key)
         if cached and len(cached[1]) >= comment_limit:
-            return cached[0], cached[1][:comment_limit] if comment_limit else cached[1]
+            return cached[0], cached[1][:comment_limit]
 
         if permalink_or_id.startswith("/"):
             url = f"{PUBLIC_BASE}{permalink_or_id}"
@@ -182,14 +183,20 @@ class Fetcher:
             url = permalink_or_id
         else:
             url = f"{PUBLIC_BASE}/comments/{post_id}/"
+        parsed = urllib.parse.urlsplit(url)
+        query = urllib.parse.parse_qs(parsed.query)
+        query["sort"] = [comment_sort]
+        url = urllib.parse.urlunsplit(parsed._replace(query=urllib.parse.urlencode(query, doseq=True)))
         self._dom_goto(url)
         self._dom_wait_content()
         data = self._client.page.evaluate(_POST_PAGE_JS, comment_limit or 0)
-        post = data.get("post") or {}
+        post = data.get("post")
+        if not post:
+            raise LookupError(f"Could not fetch post {post_id}")
         post.setdefault("id", post_id)
         comments = data.get("comments") or []
-        self._post_cache[post_id] = (post, comments)
-        return post, comments[:comment_limit] if comment_limit else comments
+        self._post_cache[cache_key] = (post, comments)
+        return post, comments[:comment_limit]
 
     def _requests_get(self, url: str, params: Optional[dict] = None, timeout: int = 15) -> dict:
         response = self._client.get(url, params=params, timeout=timeout)
@@ -343,7 +350,7 @@ class Fetcher:
             return posts[0]
 
         if self.strategy == "browser":
-            return self._dom_post_page(permalink_or_id, comment_limit=comment_limit)
+            return self._dom_post_page(permalink_or_id, comment_limit=comment_limit, comment_sort=comment_sort)
 
         base = OAUTH_BASE if self.strategy == "bearer" else PUBLIC_BASE
         info = self._requests_get(f"{base}/api/info.json", params={"id": f"t3_{post_id}"})

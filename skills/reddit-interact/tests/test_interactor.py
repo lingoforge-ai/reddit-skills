@@ -102,7 +102,7 @@ def _make_fake_session(responses):
 
 def test_comment(monkeypatch):
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/comment", '{"json": {"data": {"things": [{"data": {"id": "c1", "permalink": "/r/test/comments/abc/title/c1"}}]}}}'),
     ])
     i = interactor.Interactor(session)
@@ -113,7 +113,7 @@ def test_comment(monkeypatch):
 
 def test_reply(monkeypatch):
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/comment", '{"json": {"data": {"things": [{"data": {"id": "c2", "permalink": "/r/test/comments/abc/title/c2"}}]}}}'),
     ])
     i = interactor.Interactor(session)
@@ -130,7 +130,7 @@ def test_reply_rejects_non_t1_prefix():
 
 def test_vote(monkeypatch):
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/vote", '{"json": {}}'),
     ])
     i = interactor.Interactor(session)
@@ -141,7 +141,7 @@ def test_vote(monkeypatch):
 
 def test_vote_detects_api_error():
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/vote", '{"json": {"errors": [["RATELIMIT", "you are doing that too much"]]}}'),
     ])
     i = interactor.Interactor(session)
@@ -151,7 +151,7 @@ def test_vote_detects_api_error():
 
 def test_save(monkeypatch):
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/save", '{"json": {}}'),
     ])
     i = interactor.Interactor(session)
@@ -162,7 +162,7 @@ def test_save(monkeypatch):
 
 def test_save_detects_api_error():
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/save", '{"json": {"errors": [["FORBIDDEN", "not allowed"]]}}'),
     ])
     i = interactor.Interactor(session)
@@ -172,7 +172,7 @@ def test_save_detects_api_error():
 
 def test_unsave(monkeypatch):
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/unsave", '{"json": {}}'),
     ])
     i = interactor.Interactor(session)
@@ -183,7 +183,7 @@ def test_unsave(monkeypatch):
 
 def test_unsave_detects_api_error():
     session = _make_fake_session([
-        ("/api/v1/me.json", '{"name": "testuser", "modhash": "abc"}'),
+        ("/api/me.json", '{"name": "testuser", "modhash": "abc"}'),
         ("/api/unsave", '{"json": {"errors": [["NOTFOUND", "thing not found"]]}}'),
     ])
     i = interactor.Interactor(session)

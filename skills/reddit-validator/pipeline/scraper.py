@@ -20,7 +20,11 @@ def _load_explore_package():
         )
         pkg = importlib.util.module_from_spec(spec)
         sys.modules[pkg_name] = pkg
-        spec.loader.exec_module(pkg)
+        try:
+            spec.loader.exec_module(pkg)
+        except BaseException:
+            sys.modules.pop(pkg_name, None)
+            raise
     return pkg
 
 
@@ -34,7 +38,11 @@ def _load_explorer():
         spec = importlib.util.spec_from_file_location(fullname, explorer_path)
         explorer = importlib.util.module_from_spec(spec)
         sys.modules[fullname] = explorer
-        spec.loader.exec_module(explorer)
+        try:
+            spec.loader.exec_module(explorer)
+        except BaseException:
+            sys.modules.pop(fullname, None)
+            raise
     return explorer
 
 
@@ -48,7 +56,11 @@ def _load_client():
         spec = importlib.util.spec_from_file_location(fullname, client_path)
         client = importlib.util.module_from_spec(spec)
         sys.modules[fullname] = client
-        spec.loader.exec_module(client)
+        try:
+            spec.loader.exec_module(client)
+        except BaseException:
+            sys.modules.pop(fullname, None)
+            raise
     return client
 
 

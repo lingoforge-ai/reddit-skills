@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pipeline.client import Fetcher
+from pipeline.client import Fetcher, _POST_PAGE_JS
 
 
 class FakeItem(SimpleNamespace):
@@ -91,13 +91,16 @@ class FakeSession:
 class FakePage:
     def __init__(self, responses):
         self._responses = responses
+        self.visits = []
 
-    def evaluate(self, js, args):
-        url = args[0]
-        for prefix, payload in self._responses:
-            if url.startswith(prefix):
-                return {"ok": True, "status": 200, "body": json.dumps(payload), "url": url}
-        raise RuntimeError(f"Unexpected browser request: {url}")
+    def goto(self, url, **kwargs):
+        self.visits.append(url)
+
+    def evaluate(self, js, args=None):
+        if args is None:
+            return True
+        assert js == _POST_PAGE_JS
+        return self._responses
 
 
 class FakeBrowserSession:
@@ -281,12 +284,9 @@ def test_post_public_no_comments_skips_comments_fetch():
     assert len(session.calls) == 1
 
 
-def test_post_browser_fetches_info_then_comments():
+def test_post_browser_fetches_dom_post_and_comments():
     post_data, info_response, comments_response, all_comments = _post_payloads()
-    page = FakePage([
-        ("https://www.reddit.com/api/info.json", info_response),
-        ("https://www.reddit.com/r/test/comments/abc/title.json", comments_response),
-    ])
+    page = FakePage({"post": post_data, "comments": all_comments})
     session = FakeBrowserSession(page)
     fetcher = Fetcher.from_existing(session)
     assert fetcher.strategy == "browser"
@@ -294,3 +294,38 @@ def test_post_browser_fetches_info_then_comments():
     post, comments = fetcher.post("abc", comment_limit=2, comment_sort="top")
     assert post == post_data
     assert comments == all_comments[:2]
+
+
+@pytest.mark.parametrize("limit", [0, 1, 2])
+def test_browser_comment_limit_on_fresh_and_cached_results(limit):
+    post_data, _, _, all_comments = _post_payloads()
+    page = FakePage({"post": post_data, "comments": all_comments})
+    fetcher = Fetcher.from_existing(FakeBrowserSession(page))
+    assert fetcher.post("abc", comment_limit=limit) == (post_data, all_comments[:limit])
+    assert fetcher.post("abc", comment_limit=limit) == (post_data, all_comments[:limit])
+    assert len(page.visits) == 1
+
+
+def test_browser_comment_sort_navigation_and_cache():
+    post_data, _, _, comments = _post_payloads()
+    page = FakePage({"post": post_data, "comments": comments})
+    fetcher = Fetcher.from_existing(FakeBrowserSession(page))
+    fetcher.post("abc", comment_limit=2, comment_sort="top")
+    page._responses = {"post": post_data, "comments": list(reversed(comments))}
+    assert fetcher.post("abc", comment_limit=2, comment_sort="new")[1] == list(reversed(comments))[:2]
+    assert fetcher.post("abc", comment_limit=2, comment_sort="top")[1] == comments[:2]
+    assert page.visits == [
+        "https://www.reddit.com/comments/abc/?sort=top",
+        "https://www.reddit.com/comments/abc/?sort=new",
+    ]
+
+
+@pytest.mark.parametrize("post", [None, {}])
+def test_browser_missing_post_is_not_cached(post):
+    page = FakePage({"post": post, "comments": []})
+    fetcher = Fetcher.from_existing(FakeBrowserSession(page))
+    with pytest.raises(LookupError, match="Could not fetch post abc"):
+        fetcher.post("abc")
+    assert fetcher._post_cache == {}
+    page._responses = {"post": {"title": "Recovered"}, "comments": []}
+    assert fetcher.post("abc")[0] == {"id": "abc", "title": "Recovered"}
