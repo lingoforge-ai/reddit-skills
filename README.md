@@ -49,13 +49,13 @@ This project is compatible with [skills.sh](https://skills.sh). Install individu
 
 ```bash
 # Install a single skill
-npx skills add lingoforge-ai/reddit-skills --skill reddit-auth
+npx skills add https://github.com/lingoforge-ai/reddit-skills --skill reddit-auth
 
 # Install multiple skills
-npx skills add lingoforge-ai/reddit-skills --skill reddit-auth --skill reddit-validator --skill reddit-orchestrator
+npx skills add https://github.com/lingoforge-ai/reddit-skills --skill reddit-auth --skill reddit-validator --skill reddit-orchestrator
 
 # Install all skills
-npx skills add lingoforge-ai/reddit-skills --all
+npx skills add https://github.com/lingoforge-ai/reddit-skills --all
 ```
 
 Installed skills land in `skills/<skill-name>/` with a `SKILL.md` contract that AI agents can discover and invoke.
