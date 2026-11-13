@@ -78,7 +78,14 @@ class Interactor:
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), timeout_ms);
                 try {
-                    const res = await fetch(url, { signal: controller.signal, credentials: 'include' });
+                    const res = await fetch(url, {
+                        signal: controller.signal,
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
                     const text = await res.text();
                     return {ok: res.ok, status: res.status, body: text};
                 } catch (err) {
@@ -88,7 +95,7 @@ class Interactor:
                 }
             }
             """,
-            [f"{PUBLIC_BASE}/api/v1/me.json", 10000],
+            [f"{PUBLIC_BASE}/api/me.json", 10000],
         )
         if not result.get("ok"):
             raise RuntimeError(f"Could not fetch user profile: {result}")
