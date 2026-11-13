@@ -125,3 +125,33 @@ def test_scrape_without_subreddits_searches_all(monkeypatch):
     scrape("test idea", {"subreddits": 1, "posts_per_subreddit": 1}, client=object())
     assert len(explorer.calls) == 1
     assert explorer.calls[0][1]["subreddits"] is None
+
+
+@pytest.mark.parametrize("loader_name,module_name", [
+    ("_load_explore_package", "reddit_explore_pipeline"),
+    ("_load_explorer", "reddit_explore_pipeline.explorer"),
+    ("_load_client", "reddit_explore_pipeline.client"),
+])
+def test_failed_module_load_cleans_registration_and_can_retry(monkeypatch, tmp_path, loader_name, module_name):
+    from pipeline import scraper
+
+    for name in ("reddit_explore_pipeline", "reddit_explore_pipeline.explorer", "reddit_explore_pipeline.client"):
+        monkeypatch.delitem(sys.modules, name, raising=False)
+    monkeypatch.setattr(scraper, "_explore_package_dir", lambda: tmp_path)
+    for filename in ("__init__.py", "explorer.py", "client.py"):
+        (tmp_path / filename).write_text("")
+    target = tmp_path / {"_load_explore_package": "__init__.py", "_load_explorer": "explorer.py", "_load_client": "client.py"}[loader_name]
+    target.write_text('raise RuntimeError("failed import")\n')
+    loader = getattr(scraper, loader_name)
+    try:
+        with pytest.raises(RuntimeError, match="failed import"):
+            loader()
+        assert module_name not in sys.modules
+        target.write_text('ready = True\n')
+        loaded = loader()
+        assert loaded.ready
+        assert sys.modules[module_name] is loaded
+        assert loader() is loaded
+    finally:
+        for name in ("reddit_explore_pipeline", "reddit_explore_pipeline.explorer", "reddit_explore_pipeline.client"):
+            sys.modules.pop(name, None)

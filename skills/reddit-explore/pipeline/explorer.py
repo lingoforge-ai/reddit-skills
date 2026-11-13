@@ -36,7 +36,7 @@ def search_posts(
     records = []
 
     if subs:
-        per_sub = max(1, limit // max(1, len(subs))) if limit else 25
+        per_sub = max(1, limit) if limit else 25
         for sub in subs:
             raw_posts = fetcher.search(
                 query=query, subreddit=sub, limit=per_sub, sort=sort, time_filter=time_filter
